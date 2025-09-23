@@ -89,9 +89,75 @@ Assign each participant a function to document:
 - Group C: `get_project_dashboard` (lines 31-49)
 
 **Key Teaching Points:**
-- Show how including "business context" improves documentation
-- Demonstrate iterative refinement
-- Explain importance of specifying output format
+
+**DEMONSTRATION 1: Show how business context improves documentation**
+
+Open `research/views.py` line 184 in Cursor, and show these prompts live:
+
+*First attempt (NO context):*
+```
+Prompt: "Document this function"
+```
+*Show the AI response - it will be generic and miss business meaning*
+
+*Second attempt (WITH context):*
+```
+Prompt: "Document the calculate_data_quality_metrics function. This is used in a 
+research platform where scientists upload datasets. The function validates data 
+quality before researchers share data across institutions. Include what the 
+quality grades A-D mean for research data sharing decisions."
+```
+*Show how AI now includes research-specific context in the documentation*
+
+**DEMONSTRATION 2: Iterative refinement**
+
+Stay with the same function and show this progression:
+
+*Iteration 1:*
+```
+Prompt: "What does this function do?"
+AI Response: [vague overview]
+```
+
+*Iteration 2:*
+```
+Prompt: "What does this function do? Focus on the validation_rules parameter"
+AI Response: [better, but still missing details]
+```
+
+*Iteration 3:*
+```
+Prompt: "Explain the validation_rules parameter in calculate_data_quality_metrics.
+Show me an example of validation_rules dict that would check:
+- Temperature values between -50 and 50
+- Email format for researcher_email field"
+AI Response: [now gives concrete example you can use]
+```
+
+**DEMONSTRATION 3: Importance of output format**
+
+Show the difference:
+
+*Without format specification:*
+```
+Prompt: "Document this function"
+Result: Random format, maybe paragraphs
+```
+
+*With format specification:*
+```
+Prompt: "Document this function with:
+- One-line summary
+- Args section with parameter types
+- Returns section with example output
+- Usage example with real values"
+Result: Structured, usable documentation
+```
+
+**LIVE CODING TIP:** 
+- Split your screen: Cursor on left, browser with Django admin on right
+- Show the actual models in Django admin while discussing the code
+- Copy-paste the AI responses into a new file so participants can see the evolution
 
 ### 🐛 Part 2: Bug Identification & Fixing (30 minutes)
 
@@ -99,39 +165,122 @@ Assign each participant a function to document:
 
 **1. Demonstrate context-aware debugging (10 min)**
 
-Show the N+1 query problem together:
+**STEP-BY-STEP N+1 QUERY DEMONSTRATION:**
 
+**Step 1: Show the problem**
+```bash
+# First, in terminal, show Django logging:
+docker-compose exec web python manage.py shell
+>>> import logging
+>>> logging.basicConfig(level=logging.DEBUG)
+```
+
+**Step 2: Open the buggy code**
+Open `research/views.py` lines 31-49 in Cursor
+
+**Step 3: Try a poor prompt first**
+```
+Instructor says: "Let's try a vague prompt first"
+Type in Cursor: "Fix the performance issue"
+
+Show result: AI gives generic performance tips, misses the actual N+1 problem
+```
+
+**Step 4: Add some context**
+```
+Instructor says: "Now let's add information about what this code does"
+Type: "Fix the performance issue in get_project_dashboard. It's too slow when 
+we have many datasets"
+
+Show result: AI might mention database queries but not specific solution
+```
+
+**Step 5: Provide full context - THE GOOD PROMPT**
+```
+Instructor says: "Now let's give the AI everything it needs"
+Type: "Analyze the get_project_dashboard view for N+1 query problems:
+1. Look at line 43 where we access dataset.uploaded_by.username
+2. Look at line 44 where we access dataset.uploaded_by.profile.institution.name  
+3. Look at line 45 where we call dataset.processing_jobs.count()
+4. Check the models in research/models.py to understand relationships
+5. Fix using Django's select_related for ForeignKeys and prefetch_related for reverse ForeignKeys
+6. Show the complete fixed code"
+
+Show result: AI now provides exact fix with select_related and prefetch_related
+```
+
+**Step 6: Test the fix**
 ```python
-# File: research/views.py, lines 31-49
-# This is the buggy code with N+1 problem
+# Show the before/after query count:
+# Before: 50+ queries for 10 datasets
+# After: 3 queries total
+
+# Paste the fixed code and demonstrate the improvement
 ```
 
-**Poor prompt:**
-```
-"Fix the performance issue"
-```
-
-**Good prompt:**
-```
-"Analyze the get_project_dashboard view for N+1 query problems. 
-Consider:
-- The Django models in research/models.py
-- How datasets relate to projects and users
-- Django ORM optimization techniques like select_related and prefetch_related
-Show the fixed code with explanation."
-```
+**KEY INSTRUCTOR MOMENTS:**
+- Pause after each prompt to discuss what was missing
+- Ask participants: "What context would help here?"
+- Show the Django Debug Toolbar query count if possible
+- Emphasize the progression from vague to specific
 
 **2. Guided practice with different bugs (20 min)**
 
-Assign bugs to groups:
-- **Beginner**: Cache invalidation bug (lines 137-162)
-  - Prompt hint: "Check when cache should be invalidated after data access"
-  
-- **Intermediate**: Security bug (lines 52-70)
-  - Prompt hint: "Consider multi-institutional access controls from the models"
-  
-- **Advanced**: Race condition (lines 73-99)
-  - Prompt hint: "Think about concurrent uploads with same filename"
+**INSTRUCTOR SETUP:**
+Divide class into 3 groups based on experience level. Walk around and help each group.
+
+**GROUP A - Beginner: Cache Invalidation Bug**
+
+*Location:* `research/views.py` lines 137-162 (get_dataset_statistics)
+
+*What to tell them:*
+```
+"Your bug: Statistics are cached but never updated when data changes.
+Start with: 'Why are my download statistics not updating?'
+Build up to include: cache keys, invalidation triggers, Django cache framework"
+```
+
+*Expected progression:*
+1. "Fix the cache bug" → Too vague
+2. "The cache in get_dataset_statistics never updates" → Better
+3. "Fix the cache invalidation in get_dataset_statistics. When a dataset is downloaded (line 62), the cache should be cleared. Use cache.delete() with the correct key pattern" → Good!
+
+**GROUP B - Intermediate: Security Bug**
+
+*Location:* `research/views.py` lines 52-70 (download_dataset)
+
+*What to tell them:*
+```
+"Your bug: Any logged-in user can download any dataset, even private ones.
+Start by looking at the models.py to understand the privacy levels.
+Think about: Who should access what?"
+```
+
+*Expected progression:*
+1. "Add security check" → Too vague
+2. "Check if user can download dataset" → Better
+3. "Add permission check in download_dataset: verify if request.user is the dataset.uploaded_by OR is a collaborator on the project OR has an approved DataAccessRequest. Check the models.py for relationships" → Good!
+
+**GROUP C - Advanced: Race Condition Bug**
+
+*Location:* `research/views.py` lines 73-99 (process_uploaded_file)
+
+*What to tell them:*
+```
+"Your bug: When two users upload 'data.csv' at the same time, one overwrites the other.
+Think about: Unique filenames, timestamps, UUID"
+```
+
+*Expected progression:*
+1. "Fix the file upload" → Too vague
+2. "Make filenames unique" → Better  
+3. "Fix race condition in process_uploaded_file: Use UUID or timestamp in filename. Import uuid, change line 80 to: filename = f'{project_id}_{uuid.uuid4()}_{file.name}'. Also ensure directory exists with os.makedirs()" → Good!
+
+**INSTRUCTOR CHECKPOINTS:**
+Every 5 minutes, ask each group:
+- "What context did you add to your prompt?"
+- "What information from models.py helped?"
+- "Show me your prompt evolution"
 
 ### 🎨 Part 3: Iterative Refinement (15 minutes)
 
