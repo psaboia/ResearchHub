@@ -7,10 +7,10 @@ import uuid
 
 
 class Command(BaseCommand):
-    help = 'Creates test data for the ResearchHub platform workshop exercises'
+    help = 'Creates test data for the ResearchHub platform'
 
     def handle(self, *args, **options):
-        self.stdout.write('Setting up workshop test data...')
+        self.stdout.write('Setting up test data...')
 
         # Clear existing data for clean slate
         self.stdout.write('Clearing existing data...')
@@ -48,7 +48,7 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS('Created 4 institutions'))
 
-        # Create users - including researcher1 for workshop exercises
+        # Create users
         alice = User.objects.create_user(
             username='alice',
             email='alice@mit.edu',
@@ -73,7 +73,7 @@ class Command(BaseCommand):
             last_name='Brown'
         )
 
-        # IMPORTANT: researcher1 is used in all workshop exercises
+        # Research user
         researcher1 = User.objects.create_user(
             username='researcher1',
             email='researcher1@example.com',
@@ -82,7 +82,7 @@ class Command(BaseCommand):
             last_name='User'
         )
 
-        # Create users for exercises
+        # Additional test users
         user_2 = User.objects.create_user(
             username='user_2',
             email='user2@example.com',
@@ -133,7 +133,7 @@ class Command(BaseCommand):
             start_date=timezone.now().date() - timedelta(days=90),
             budget=1200000.00
         )
-        project2.collaborators.add(charlie)  # Only charlie, not alice (for security demo)
+        project2.collaborators.add(charlie)
         
         project3 = ResearchProject.objects.create(
             title='Quantum Computing Applications',
@@ -147,7 +147,7 @@ class Command(BaseCommand):
         
         self.stdout.write(self.style.SUCCESS('Created 3 research projects'))
 
-        # WORKSHOP DATA: Create Multi-Dataset Research Project
+        # Large-scale collaboration project
         collaboration_project = ResearchProject.objects.create(
             title='Multi-Dataset Research Collaboration',
             description='Large-scale collaborative project analyzing multiple research datasets across institutions',
@@ -159,7 +159,7 @@ class Command(BaseCommand):
         )
         collaboration_project.collaborators.add(user_2, user_3)
 
-        self.stdout.write(self.style.SUCCESS('Created multi-dataset collaboration project'))
+        self.stdout.write(self.style.SUCCESS('Created collaboration project'))
 
         # Create 10 datasets for collaboration project
         for i in range(1, 11):
@@ -178,7 +178,7 @@ class Command(BaseCommand):
                 metadata={'study_phase': 'data_collection', 'dataset_index': i}
             )
 
-            # Add processing jobs for each dataset (causes N+1 with count)
+            # Add processing jobs for each dataset
             for j in range(3):
                 DataProcessingJob.objects.create(
                     dataset=dataset,
@@ -189,7 +189,7 @@ class Command(BaseCommand):
                     parameters={'step': j}
                 )
 
-            # Add approved access requests (causes N+1 with filter)
+            # Add approved access requests
             for k in range(2):
                 requester = user_2 if k == 0 else user_3
                 DataAccessRequest.objects.create(
@@ -202,9 +202,9 @@ class Command(BaseCommand):
                     approval_date=timezone.now() - timedelta(days=k+1)
                 )
 
-        self.stdout.write(self.style.SUCCESS('Created 10 datasets with related data for collaboration project'))
+        self.stdout.write(self.style.SUCCESS('Created 10 datasets with related data'))
 
-        # Create additional datasets for other exercises
+        # Create additional datasets
         dataset1 = Dataset.objects.create(
             project=project1,
             name='Ocean Temperature Measurements 2023',
@@ -220,7 +220,7 @@ class Command(BaseCommand):
             metadata={'source': 'NOAA', 'sensors': 50, 'frequency': 'hourly'}
         )
 
-        # Private dataset for security demo
+        # Private dataset
         private_dataset = Dataset.objects.create(
             project=project2,
             name='Confidential Drug Trial Results',
@@ -236,7 +236,7 @@ class Command(BaseCommand):
             metadata={'confidential': True, 'trial_phase': 3}
         )
 
-        # Create the file for demo purposes (so download actually works)
+        # Create the file for testing purposes
         import os
         os.makedirs('/media/datasets/private', exist_ok=True)
         with open('/media/datasets/private/drug_trial.xlsx', 'wb') as f:
@@ -258,10 +258,10 @@ class Command(BaseCommand):
             metadata={'analytics_type': 'dashboard_metrics'}
         )
 
-        self.stdout.write(self.style.SUCCESS('Created additional datasets for other demos'))
+        self.stdout.write(self.style.SUCCESS('Created additional datasets'))
 
-        # Create some initial audit logs for analytics dataset (to show existing downloads)
-        for i in range(15):  # Create 15 initial downloads to match dashboard scenario
+        # Create some initial audit logs for analytics dataset
+        for i in range(15):
             AuditLog.objects.create(
                 user=alice if i % 3 == 0 else (bob if i % 3 == 1 else charlie),
                 action='download',
@@ -271,7 +271,7 @@ class Command(BaseCommand):
                 timestamp=timezone.now() - timedelta(hours=12 - i)  # Spread over last 12 hours
             )
 
-        self.stdout.write(self.style.SUCCESS('Created 15 initial downloads for analytics dataset'))
+        self.stdout.write(self.style.SUCCESS('Created initial download logs'))
 
         # Create data access requests
         DataAccessRequest.objects.create(
@@ -299,11 +299,11 @@ class Command(BaseCommand):
         # Summary of created data
         self.stdout.write(self.style.SUCCESS(
             '\n' + '='*60 +
-            '\nWORKSHOP TEST DATA SETUP COMPLETE!\n' +
+            '\nTEST DATA SETUP COMPLETE!\n' +
             '='*60 +
             '\n\nCredentials:' +
             '\n  Admin: admin / admin123' +
-            '\n  Workshop user: researcher1 / testpass123' +
+            '\n  Research user: researcher1 / testpass123' +
             '\n  Test users: alice, bob, charlie (password: testpass123)' +
             '\n\nKey Data Available:' +
             '\n  Multi-Dataset Project: "Multi-Dataset Research Collaboration" with 10 datasets' +

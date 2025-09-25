@@ -26,34 +26,30 @@ from .models import (
 )
 
 
-# BUG 1: N+1 Query Problem - Missing select_related/prefetch_related
 @api_view(['GET'])
 def get_project_dashboard(request, project_id):
     project = ResearchProject.objects.get(id=project_id)
-    
+
     datasets = project.datasets.all()
-    
+
     dataset_info = []
     for dataset in datasets:
-        # This triggers a query for each dataset
         info = {
             'id': str(dataset.id),
             'name': dataset.name,
-            'uploaded_by': dataset.uploaded_by.username,  # N+1
-            'processing_jobs': dataset.processing_jobs.count(),  # N+1
-            'access_requests': dataset.access_requests.filter(status='approved').count(),  # N+1
+            'uploaded_by': dataset.uploaded_by.username,
+            'processing_jobs': dataset.processing_jobs.count(),
+            'access_requests': dataset.access_requests.filter(status='approved').count(),
         }
         dataset_info.append(info)
-    
+
     return Response({'project': project.title, 'datasets': dataset_info})
 
 
-# BUG 2: Missing permission check - Security vulnerability
 @api_view(['POST'])
 @login_required
 def download_dataset(request, dataset_id):
     dataset = Dataset.objects.get(id=dataset_id)
-    # BUG: No check if user has permission to download this dataset
 
     file_path = dataset.file_path
 
@@ -69,20 +65,18 @@ def download_dataset(request, dataset_id):
     return FileResponse(open(file_path, 'rb'), as_attachment=True)
 
 
-# BUG 3: Race condition in file processing
 @api_view(['POST'])
 def process_uploaded_file(request):
     file = request.FILES['file']
     project_id = request.data.get('project_id')
-    
-    # BUG: Multiple users can upload same filename causing race condition
+
     filename = f"{project_id}_{file.name}"
     save_path = f"/media/uploads/{filename}"
-    
+
     with open(save_path, 'wb') as f:
         for chunk in file.chunks():
             f.write(chunk)
-    
+
     dataset = Dataset.objects.create(
         project_id=project_id,
         name=file.name,
@@ -91,62 +85,57 @@ def process_uploaded_file(request):
         uploaded_by=request.user,
         file_type='csv',
     )
-    
+
     # Start processing job
     process_dataset_task.delay(str(dataset.id))
-    
+
     return Response({'dataset_id': str(dataset.id)})
 
 
-# BUG 4: Memory issue with large file processing
 @shared_task
 def process_dataset_task(dataset_id):
     dataset = Dataset.objects.get(id=dataset_id)
-    
-    # BUG: Loading entire file into memory - crashes on large files
+
     if dataset.file_type == 'csv':
-        df = pd.read_csv(dataset.file_path)  # Memory issue on 2GB+ files
-        
+        df = pd.read_csv(dataset.file_path)
+
         dataset.row_count = len(df)
         dataset.column_count = len(df.columns)
         dataset.is_processed = True
         dataset.save()
-        
+
         # Perform analysis
         summary = df.describe().to_dict()
-        
+
         return {'status': 'success', 'summary': summary}
 
 
-# BUG 5: API rate limiting not handled
 def sync_external_research_data(request, external_id):
-    # BUG: No rate limiting handling, no retry logic
     response = requests.get(
         f"https://api.research-database.org/datasets/{external_id}",
         headers={'Authorization': f"Bearer {settings.EXTERNAL_API_KEY}"}
     )
-    
-    data = response.json()  # Fails on 429 rate limit
-    
+
+    data = response.json()
+
     # Process and store data
     return JsonResponse({'status': 'synced', 'data': data})
 
 
-# BUG 6: Cache invalidation issue
 @api_view(['GET'])
 def get_dataset_statistics(request, dataset_id):
     cache_key = f"dataset_stats_{dataset_id}"
-    
+
     stats = cache.get(cache_key)
     if stats:
         return Response(stats)
-    
+
     dataset = Dataset.objects.get(id=dataset_id)
-    
+
     # Calculate expensive statistics
     stats = {
         'total_downloads': AuditLog.objects.filter(
-            object_id=str(dataset_id), 
+            object_id=str(dataset_id),
             action='download'
         ).count(),
         'unique_users': AuditLog.objects.filter(
@@ -154,32 +143,28 @@ def get_dataset_statistics(request, dataset_id):
         ).values('user').distinct().count(),
         'last_accessed': dataset.last_accessed,
     }
-    
-    # BUG: Cache not invalidated when dataset is accessed
+
     cache.set(cache_key, stats, timeout=3600)
-    
+
     return Response(stats)
 
 
-# BUG 7: SQL injection vulnerability (in raw query)
 @api_view(['GET'])
 def search_datasets(request):
     search_term = request.GET.get('q', '')
-    
-    # BUG: Direct string formatting in SQL - SQL injection risk
+
     query = f"""
-        SELECT * FROM research_dataset 
-        WHERE name LIKE '%{search_term}%' 
+        SELECT * FROM research_dataset
+        WHERE name LIKE '%{search_term}%'
         OR description LIKE '%{search_term}%'
     """
-    
+
     datasets = Dataset.objects.raw(query)
-    
+
     results = [{'id': str(d.id), 'name': d.name} for d in datasets]
     return Response(results)
 
 
-# Complex undocumented function for documentation workshop
 def calculate_data_quality_metrics(dataset_id, validation_rules=None, threshold_config=None):
     dataset = Dataset.objects.get(id=dataset_id)
     
@@ -260,7 +245,6 @@ def calculate_data_quality_metrics(dataset_id, validation_rules=None, threshold_
     return metrics
 
 
-# Complex undocumented workflow orchestration
 def process_research_workflow(project_id, workflow_config):
     project = ResearchProject.objects.get(id=project_id)
     results = {'steps': [], 'errors': [], 'warnings': []}

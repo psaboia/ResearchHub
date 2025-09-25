@@ -116,22 +116,10 @@ uv run python manage.py runserver
 - `POST /api/access-requests/` - Request dataset access
 - `PUT /api/access-requests/<id>/approve/` - Approve access request
 
-## Known Issues for Workshop
+## Key Functions
 
-This codebase contains intentional bugs for the AI upskilling workshop:
-
-1. **Performance Issues**: N+1 query problems in dashboard views
-2. **Security Vulnerabilities**: Missing permission checks in critical endpoints
-3. **Race Conditions**: File upload naming conflicts
-4. **Memory Management**: Large file processing issues
-5. **API Integration**: Missing rate limit handling
-6. **Cache Management**: Stale cache invalidation
-7. **SQL Injection**: Unsafe query construction
-
-## Complex Functions Needing Documentation
-
-The following functions lack documentation and will be used in the workshop:
-- `calculate_data_quality_metrics()` - Complex data quality assessment
+The platform includes several advanced features:
+- `calculate_data_quality_metrics()` - Comprehensive data quality assessment
 - `process_research_workflow()` - Multi-step workflow orchestration
 
 ## Development Notes

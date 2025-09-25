@@ -70,63 +70,24 @@ After running `setup_test_data`:
   - alice / testpass123 (MIT)
   - bob / testpass123 (Stanford)
   - charlie / testpass123 (Oxford)
+  - researcher1 / testpass123 (Test University)
 
-## Testing the Bugs
+## API Testing
 
-### 1. Test N+1 Query Problem
+### Basic API Endpoints
+
 ```bash
-# Watch the console for multiple queries
+# List all projects
+curl http://localhost:8000/api/projects/
+
+# Get project dashboard
 curl http://localhost:8000/api/projects/<project-id>/dashboard/
-```
 
-### 2. Test Missing Permission Check
-```bash
-# Login as charlie and try to download alice's private dataset
-curl -X POST http://localhost:8000/api/datasets/<dataset-id>/download/
-# Should work but shouldn't (bug!)
-```
+# Search datasets
+curl "http://localhost:8000/api/datasets/search/?q=ocean"
 
-### 3. Test Race Condition
-```bash
-# Upload two files with same name simultaneously
-# In two terminals:
-curl -X POST -F "file=@test.csv" -F "project_id=<id>" http://localhost:8000/api/datasets/upload/
-```
-
-### 4. Test Memory Issue
-```bash
-# Create a large CSV file (2GB+)
-python -c "import pandas as pd; import numpy as np; df = pd.DataFrame(np.random.rand(10000000, 10)); df.to_csv('large.csv')"
-
-# Upload and watch memory usage
-curl -X POST -F "file=@large.csv" -F "project_id=<id>" http://localhost:8000/api/datasets/upload/
-```
-
-### 5. Test API Rate Limiting Issue
-```bash
-# Rapidly call external sync endpoint
-for i in {1..100}; do
-  curl http://localhost:8000/api/sync/external/test-id/
-done
-# Will fail after hitting rate limit
-```
-
-### 6. Test Cache Invalidation
-```bash
-# Get statistics (will be cached)
-curl http://localhost:8000/api/datasets/<id>/statistics/
-
-# Download the dataset (should invalidate cache but doesn't)
-curl -X POST http://localhost:8000/api/datasets/<id>/download/
-
-# Get statistics again (returns stale data)
-curl http://localhost:8000/api/datasets/<id>/statistics/
-```
-
-### 7. Test SQL Injection
-```bash
-# Try SQL injection in search
-curl "http://localhost:8000/api/datasets/search/?q=test'%20OR%20'1'='1"
+# Get dataset statistics
+curl http://localhost:8000/api/datasets/<dataset-id>/statistics/
 ```
 
 ## Using Django Admin
@@ -147,11 +108,7 @@ from django.contrib.auth.models import User
 # Get all projects
 projects = ResearchProject.objects.all()
 
-# Get datasets with N+1 problem
-for dataset in Dataset.objects.all():
-    print(dataset.uploaded_by.username)  # N+1 query
-
-# Test the complex functions
+# Test complex functions
 from research.views import calculate_data_quality_metrics
 metrics = calculate_data_quality_metrics(dataset_id)
 ```
@@ -212,9 +169,9 @@ redis-cli MONITOR
 psql -U postgres -d researchhub
 
 -- Show running queries
-SELECT pid, age(clock_timestamp(), query_start), usename, query 
-FROM pg_stat_activity 
-WHERE query != '<IDLE>' AND query NOT ILIKE '%pg_stat_activity%' 
+SELECT pid, age(clock_timestamp(), query_start), usename, query
+FROM pg_stat_activity
+WHERE query != '<IDLE>' AND query NOT ILIKE '%pg_stat_activity%'
 ORDER BY query_start desc;
 ```
 
@@ -242,4 +199,24 @@ redis-cli ping
 uv run python manage.py flush --no-input
 uv run python manage.py migrate
 uv run python manage.py setup_test_data
+```
+
+## Performance Testing
+
+### Load Testing with Apache Bench
+```bash
+# Test project dashboard endpoint
+ab -n 100 -c 10 http://localhost:8000/api/projects/1/dashboard/
+
+# Test search endpoint
+ab -n 50 -c 5 "http://localhost:8000/api/datasets/search/?q=test"
+```
+
+### Memory Usage Testing
+```bash
+# Monitor memory usage during large file uploads
+htop
+
+# Create a large test file
+python -c "import pandas as pd; import numpy as np; df = pd.DataFrame(np.random.rand(100000, 10)); df.to_csv('large_test.csv')"
 ```

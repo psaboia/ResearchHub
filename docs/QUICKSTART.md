@@ -50,7 +50,7 @@ The system is now running with:
 
 ### Test the API (optional)
 ```bash
-# Test the dashboard endpoint (has N+1 bug)
+# Test the dashboard endpoint
 curl http://localhost:8000/api/projects/
 ```
 
