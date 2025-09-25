@@ -120,7 +120,7 @@ ehthumbs_vista.db
 # UV
 uv.lock
 
-# Temporary/unused workshop files
+# Temporary files
 tmp/
 
 # Claude Code settings

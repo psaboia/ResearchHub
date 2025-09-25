@@ -71,62 +71,38 @@ After running `setup_test_data`:
   - bob / testpass123 (Stanford)
   - charlie / testpass123 (Oxford)
 
-## Testing the Bugs
+## Testing the Application
 
-### 1. Test N+1 Query Problem
+### 1. Test Project Dashboard
 ```bash
-# Watch the console for multiple queries
+# View project dashboard with datasets
 curl http://localhost:8000/api/projects/<project-id>/dashboard/
 ```
 
-### 2. Test Missing Permission Check
+### 2. Test Dataset Download
 ```bash
-# Login as charlie and try to download alice's private dataset
+# Download a dataset (requires proper permissions)
 curl -X POST http://localhost:8000/api/datasets/<dataset-id>/download/
-# Should work but shouldn't (bug!)
 ```
 
-### 3. Test Race Condition
+### 3. Test File Upload
 ```bash
-# Upload two files with same name simultaneously
-# In two terminals:
+# Upload a dataset file
 curl -X POST -F "file=@test.csv" -F "project_id=<id>" http://localhost:8000/api/datasets/upload/
 ```
 
-### 4. Test Memory Issue
+### 4. Test Dataset Statistics
 ```bash
-# Create a large CSV file (2GB+)
-python -c "import pandas as pd; import numpy as np; df = pd.DataFrame(np.random.rand(10000000, 10)); df.to_csv('large.csv')"
-
-# Upload and watch memory usage
-curl -X POST -F "file=@large.csv" -F "project_id=<id>" http://localhost:8000/api/datasets/upload/
-```
-
-### 5. Test API Rate Limiting Issue
-```bash
-# Rapidly call external sync endpoint
-for i in {1..100}; do
-  curl http://localhost:8000/api/sync/external/test-id/
-done
-# Will fail after hitting rate limit
-```
-
-### 6. Test Cache Invalidation
-```bash
-# Get statistics (will be cached)
-curl http://localhost:8000/api/datasets/<id>/statistics/
-
-# Download the dataset (should invalidate cache but doesn't)
-curl -X POST http://localhost:8000/api/datasets/<id>/download/
-
-# Get statistics again (returns stale data)
+# Get dataset usage statistics
 curl http://localhost:8000/api/datasets/<id>/statistics/
 ```
 
-### 7. Test SQL Injection
+### 5. Test Dataset Search
 ```bash
-# Try SQL injection in search
-curl "http://localhost:8000/api/datasets/search/?q=test'%20OR%20'1'='1"
+# Search for datasets
+curl http://localhost:8000/api/datasets/search/?q=research
+```
+
 ```
 
 ## Using Django Admin
@@ -147,9 +123,9 @@ from django.contrib.auth.models import User
 # Get all projects
 projects = ResearchProject.objects.all()
 
-# Get datasets with N+1 problem
+# Get all datasets
 for dataset in Dataset.objects.all():
-    print(dataset.uploaded_by.username)  # N+1 query
+    print(dataset.uploaded_by.username)
 
 # Test the complex functions
 from research.views import calculate_data_quality_metrics

@@ -1,0 +1,19 @@
+# Syntax similar to .gitignore
+# Ignore specific folders
+docs copy/
+__pycache__/
+workshop_scripts/
+
+# Workshop files (hidden from AI context)
+docs/WORKSHOP_GUIDE.md
+
+# Ignore specific file types
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore specific files
+.DS_Store
+
+# Ignore patterns
+**/*.log

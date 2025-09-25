@@ -53,7 +53,34 @@ This demonstration script will:
 > 3. **Ask participants** - "What would happen if this was your production system?"
 > 4. **Connect to real world** - Similar to Twitter's view count caching issues
 
-## Step 2: Prepare Your Cursor Context
+## Step 2: Context Quality Demonstration
+
+> **📝 INSTRUCTOR DEMONSTRATION:**
+> Before participants set up their context, show them why specific prompts work better!
+> They just saw the cache problem (35 in DB, 15 in cache) - perfect timing to demonstrate context importance.
+
+### Instructor Demo - Vague Context (2 minutes)
+
+**Setup for Instructor:**
+1. **Close all files** in your Cursor/IDE
+2. **Clear or minimize terminal** so cache discrepancy isn't visible
+3. **Start fresh AI conversation**
+
+**Live Demo:**
+- **Ask AI:** "Fix the cache issue"
+- **Point out to participants:** Watch how the AI gives generic caching advice
+- **Expected AI Response:** Generic suggestions about Redis config, TTL settings, cache warming
+- **Say to participants:** "See? The AI doesn't know about our specific statistics cache or download function!"
+
+**Key Teaching Point:**
+> **"Without context, AI gives generic cache advice. But we need specific help with download invalidating statistics cache!"**
+
+---
+
+**Transition to Good Context:**
+> **"Now let's give the AI the specific context it needs to solve OUR cache invalidation problem!"**
+
+## Step 3: Prepare Your Cursor Context
 
 > **💡 CURSOR CONTEXT MANAGEMENT:**
 > Cursor automatically includes all open files and terminal output in the AI's context.
@@ -90,7 +117,7 @@ This demonstration script will:
 - **+ both functions visible**: AI understands the connection between them
 - **= Perfect solution**: AI can now suggest precise cache.delete() in the right place
 
-## Step 3: Examine the Problematic Code
+## Step 4: Examine the Problematic Code
 
 ### The Problematic Code (for instructor reference):
 ```python
@@ -120,7 +147,7 @@ AuditLog.objects.create(...)  # Records download
 > 2. **Ask the key question** - "Where should we invalidate this cache?"
 > 3. **Point to download_dataset** - "What happens after line 68?"
 
-## Step 4: Use AI to Generate the Fix (Workshop Exercise)
+## Step 5: Use AI to Generate the Fix (Workshop Exercise)
 
 ### Leveraging Cursor's Context for Progressive Improvement
 
@@ -184,7 +211,7 @@ Import cache and show the complete fixed function."
 - **Function proximity** - Having both functions visible helps AI connect them
 - **Fresh conversations** - Start new when context gets cluttered
 
-## Step 5: Test YOUR AI-Generated Solution
+## Step 6: Test YOUR AI-Generated Solution
 
 ```bash
 # Test if your AI's solution actually fixed the cache bug
@@ -210,7 +237,7 @@ docker compose exec web python workshop_scripts/cache_test_your_fix.py
 > - **Common mistake** - Forgetting to import cache
 > - **Debugging tip** - Check if cache.delete() is called with correct key
 
-## Step 6: Compare with Reference Solution (If Needed)
+## Step 7: Compare with Reference Solution (If Needed)
 
 ```bash
 # If your solution didn't work, see the reference implementation
@@ -229,7 +256,7 @@ The reference will show:
 - Complete invalidation logic
 - Additional considerations for production
 
-## Step 7: Verify Business Impact is Resolved
+## Step 8: Verify Business Impact is Resolved
 
 After applying the fix, let's verify the CEO's dashboard would now work:
 

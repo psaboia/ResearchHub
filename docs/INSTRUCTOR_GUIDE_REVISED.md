@@ -114,9 +114,20 @@ docker compose exec web python workshop_scripts/verify_setup.py
 - Business understanding > technical details
 - Examples make documentation actionable
 
-### 🐛 Part 2: Bug Fixing Exercises
+### 🐛 Part 2: Bug Fixing Exercises (25-30 minutes)
 
-> **📝 Instructor Note:** Choose one or more exercises based on time and group needs. All exercises work for the entire group together.
+> **📝 Key Teaching Strategy:** Each bug demonstration includes an **embedded context demo** at the critical moment!
+>
+> **The Pattern:**
+> 1. Participants investigate the problem
+> 2. **YOU demonstrate bad context** (vague prompt → generic AI response)
+> 3. **YOU guide them to set up good context** (specific files + terminal)
+> 4. **THEY use AI with good context** → get specific, actionable solution
+>
+> This just-in-time demonstration is much more impactful than a separate session.
+
+> **📝 Instructor Note:** Participants choose ONE bug scenario to work on individually.
+> All scenarios include the context demonstration at the natural teaching moment.
 
 #### Available Bug Exercises:
 
@@ -149,21 +160,27 @@ docker compose exec web python workshop_scripts/verify_setup.py
 - **Key Learning:** Authentication vs Authorization
 - **Best for:** Groups interested in security
 
-### 🔄 Part 3: Discussion & Wrap-up (10 minutes)
+### 🔄 Part 3: Discussion & Wrap-up (10-15 minutes)
 
-> **📝 Instructor Note - Additional Security Bug:**
-> There's also a SQL injection vulnerability in `search_datasets` (lines 166-180).
-> If participants discover this instead of the authorization bug, guide them through it:
-> - **Problem:** Direct string interpolation in SQL query: `f"... WHERE name LIKE '%{search_term}%'"`
-> - **Fix:** Use Django ORM: `Dataset.objects.filter(Q(name__icontains=search_term))`
-> - **Key lesson:** Never use f-strings or % formatting with SQL queries
-> This reinforces the same context principles - better prompts lead to safer code.
+> **📝 Instructor Note:** Keep this brief but impactful. Participants should leave with clear takeaways.
 
-#### Use this time for:
-- Participants sharing their AI prompting strategies
-- Discussion: "How will you apply context-aware prompting at work?"
-- Q&A about the bugs and fixes
-- Review any solutions participants want to share
+#### Guided Discussion Questions:
+1. **"What surprised you most about the context demonstration?"**
+2. **"How will you change your AI workspace setup after today?"**
+3. **"What's one context strategy you'll use in your own projects?"**
+
+#### Quick Success Review:
+- **Ask participants:** "Did your Part 2 fixes work? Any issues?"
+- **Verify success criteria:**
+  - Performance: 32 queries → 4-5 queries
+  - Cache: Statistics update immediately
+  - Security: Unauthorized access blocked
+
+> **📝 Additional Security Bug Note:**
+> If time permits and participants are interested, mention the SQL injection vulnerability in `search_datasets` (lines 166-180):
+> - **Problem:** `f"... WHERE name LIKE '%{search_term}%'"` - Direct string interpolation
+> - **Fix:** Use Django ORM `.filter(name__icontains=search_term)` instead
+> - **Context:** Same setup principles apply
 
 ### 📊 Wrap-up & Best Practices
 

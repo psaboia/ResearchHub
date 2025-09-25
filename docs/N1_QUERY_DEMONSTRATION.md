@@ -60,7 +60,34 @@ This investigation script will:
 ⚠️ PROBLEM IDENTIFIED: N+1 QUERY PATTERN
 ```
 
-## Step 4: Prepare Your Cursor Context
+## Step 4: Context Quality Demonstration
+
+> **📝 INSTRUCTOR DEMONSTRATION:**
+> Before participants set up their context, demonstrate why context quality matters!
+> This is the perfect teaching moment - they understand the problem, now show why generic prompts fail.
+
+### Instructor Demo - Bad Context (2 minutes)
+
+**Setup for Instructor:**
+1. **Close all files** in your Cursor/IDE
+2. **Clear terminal** or open fresh terminal
+3. **Start fresh AI conversation** (clear chat history if needed)
+
+**Live Demo:**
+- **Ask AI:** "Fix the performance issue"
+- **Point out to participants:** Watch how the AI responds with generic advice
+- **Expected AI Response:** Generic suggestions about caching, indexing, pagination, load balancers
+- **Say to participants:** "See? The AI has no idea about our specific codebase or the 32-query problem!"
+
+**Key Teaching Point:**
+> **"This is what happens with vague context - you get vague solutions that don't help with our specific N+1 problem!"**
+
+---
+
+**Transition to Good Context:**
+> **"Now let's set up proper context so AI can give us a production-ready solution!"**
+
+## Step 5: Prepare Your Cursor Context
 
 > **💡 CURSOR CONTEXT MANAGEMENT:**
 > Cursor automatically includes all open files and terminal output in the AI's context.
@@ -125,7 +152,7 @@ def get_project_dashboard(request, project_id):
 - **Line 44**: `dataset.access_requests.filter(...).count()` → Triggers 1 query per dataset (10 queries)
 - **Total**: 32 queries for 10 datasets (should be only 4-5 with optimization!)
 
-## Step 5: Use AI to Generate the Fix (Workshop Exercise)
+## Step 6: Use AI to Generate the Fix (Workshop Exercise)
 
 ### Leveraging Cursor's Context for Progressive Improvement
 
@@ -187,7 +214,7 @@ Optimize the database queries for uploaded_by, processing_jobs, and access_reque
 > - **Apply** the changes to your `research/views.py` file
 > - **Test** your AI-generated fix with the same investigation script (Step 5b below)
 
-## Step 5b: Test YOUR AI-Generated Solution
+## Step 6b: Test YOUR AI-Generated Solution
 
 ```bash
 # Test if your AI's solution actually fixed the problem
@@ -199,7 +226,7 @@ docker compose exec web python workshop_scripts/n1_investigate_dashboard_perform
 > - If it's still showing 32 queries, your solution didn't work
 > - Try a better prompt or check the AI's code for errors
 
-## Step 6: Compare with Reference Solution
+## Step 7: Compare with Reference Solution
 
 ```bash
 # If your solution didn't work perfectly, compare with this reference
@@ -224,7 +251,7 @@ Total queries executed: 4-5
 (1 for project with relations + 1 for datasets with users + 1 for processing_jobs + 1 for access_requests)
 ```
 
-## Step 7: Performance Comparison Summary (Optional)
+## Step 8: Performance Comparison Summary (Optional)
 
 ```bash
 # Run the comparison script to see both versions side by side

@@ -62,7 +62,34 @@ This demonstration script will:
 > 3. **Ask participants** - "What would happen if this was patient medical records?"
 > 4. **Connect to news** - Reference recent data breaches and their costs
 
-## Step 2: Prepare Your Cursor Context
+## Step 2: Context Quality Demonstration
+
+> **📝 INSTRUCTOR DEMONSTRATION:**
+> Before participants set up their context, demonstrate why security-specific prompts work better!
+> They just saw the security breach - perfect moment to show how generic security advice won't help.
+
+### Instructor Demo - Generic Security Context (2 minutes)
+
+**Setup for Instructor:**
+1. **Close all files** in your Cursor/IDE
+2. **Clear terminal** so breach details aren't visible
+3. **Start fresh AI conversation**
+
+**Live Demo:**
+- **Ask AI:** "Add security to this function"
+- **Point out to participants:** Watch how the AI gives generic security advice
+- **Expected AI Response:** Generic suggestions about input validation, rate limiting, HTTPS
+- **Say to participants:** "See? The AI doesn't know about our specific authorization problem or dataset permissions!"
+
+**Key Teaching Point:**
+> **"Generic security advice won't fix our specific authorization vulnerability. We need AI to understand our permission model!"**
+
+---
+
+**Transition to Good Context:**
+> **"Now let's give the AI the specific context about our dataset permissions so it can implement proper authorization!"**
+
+## Step 3: Prepare Your Cursor Context
 
 > **💡 CURSOR CONTEXT MANAGEMENT:**
 > Cursor automatically includes all open files and terminal output in the AI's context.
@@ -99,7 +126,7 @@ This demonstration script will:
 - **+ terminal output**: AI sees the exact breach (unauthorized access)
 - **= Perfect solution**: AI can now suggest all four authorization paths
 
-## Step 3: Examine the Vulnerable Code
+## Step 4: Examine the Vulnerable Code
 
 ### The Vulnerable Code (for instructor reference):
 ```python
@@ -126,7 +153,7 @@ def download_dataset(request, dataset_id):
 > 3. **Highlight the comment** - Even says "BUG" right there!
 > 4. **Connect to models.py** - Show the relationships that define permissions
 
-## Step 4: Use AI to Generate the Fix (Workshop Exercise)
+## Step 5: Use AI to Generate the Fix (Workshop Exercise)
 
 ### Leveraging Cursor's Context for Progressive Improvement
 
@@ -195,7 +222,7 @@ Import PermissionDenied and show the complete fixed function."
 - **Models are crucial** - Relationships determine authorization paths
 - **Fresh conversations** - Start new when context gets cluttered
 
-## Step 5: Test YOUR AI-Generated Solution
+## Step 6: Test YOUR AI-Generated Solution
 
 ```bash
 # Test if your AI's solution actually fixed the security vulnerability
@@ -232,7 +259,7 @@ docker compose exec web python workshop_scripts/security_test_your_fix.py
 > - **Reminder** - Must import PermissionDenied from django.core.exceptions
 > - **Note** - The @api_view decorator catches PermissionDenied and returns a 403 Response
 
-## Step 6: Compare with Reference Solution (If Needed)
+## Step 7: Compare with Reference Solution (If Needed)
 
 ```bash
 # If your solution didn't work, see the reference implementation
@@ -251,7 +278,7 @@ The reference will show:
 - Audit logging for security monitoring
 - Performance optimization with select_related
 
-## Step 7: Verify the Vulnerability is Fixed
+## Step 8: Verify the Vulnerability is Fixed
 
 After applying the fix, verify unauthorized access is now blocked:
 
