@@ -28,7 +28,7 @@ docker-compose exec web python manage.py setup_test_data
 | Document | Purpose |
 |----------|---------|
 | [QUICKSTART.md](QUICKSTART.md) | Quick setup guide |
-| User Guide | Available via repository wiki |
+| [User Guide](https://github.com/psaboia/ResearchHub/wiki/RSE-Up%E2%80%90Skilling-Training%E2%80%90Week3) | Workshop exercises and learning objectives |
 | [TESTING_GUIDE.md](TESTING_GUIDE.md) | Testing documentation |
 
 ## System Overview
