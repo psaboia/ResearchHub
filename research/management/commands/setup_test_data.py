@@ -1,39 +1,54 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from research.models import Institution, ResearchProject, Dataset, DataAccessRequest
+from research.models import Institution, ResearchProject, Dataset, DataAccessRequest, DataProcessingJob, AuditLog
 from datetime import datetime, timedelta
 from django.utils import timezone
 import uuid
 
 
 class Command(BaseCommand):
-    help = 'Creates test data for the ResearchHub platform'
+    help = 'Creates test data for the ResearchHub platform workshop exercises'
 
     def handle(self, *args, **options):
-        self.stdout.write('Setting up test data...')
-        
+        self.stdout.write('Setting up workshop test data...')
+
+        # Clear existing data for clean slate
+        self.stdout.write('Clearing existing data...')
+        DataAccessRequest.objects.all().delete()
+        DataProcessingJob.objects.all().delete()
+        Dataset.objects.all().delete()
+        ResearchProject.objects.all().delete()
+        Institution.objects.all().delete()
+        User.objects.filter(is_superuser=False).delete()
+
         # Create institutions
         mit = Institution.objects.create(
             name='MIT',
             country='USA',
             address='77 Massachusetts Ave, Cambridge, MA 02139'
         )
-        
+
         stanford = Institution.objects.create(
             name='Stanford University',
             country='USA',
             address='450 Serra Mall, Stanford, CA 94305'
         )
-        
+
         oxford = Institution.objects.create(
             name='University of Oxford',
             country='UK',
             address='Wellington Square, Oxford OX1 2JD'
         )
-        
-        self.stdout.write(self.style.SUCCESS('Created 3 institutions'))
-        
-        # Create users
+
+        test_university = Institution.objects.create(
+            name='Test University',
+            country='USA',
+            address='123 Research Ave'
+        )
+
+        self.stdout.write(self.style.SUCCESS('Created 4 institutions'))
+
+        # Create users - including researcher1 for workshop exercises
         alice = User.objects.create_user(
             username='alice',
             email='alice@mit.edu',
@@ -41,7 +56,7 @@ class Command(BaseCommand):
             first_name='Alice',
             last_name='Smith'
         )
-        
+
         bob = User.objects.create_user(
             username='bob',
             email='bob@stanford.edu',
@@ -49,7 +64,7 @@ class Command(BaseCommand):
             first_name='Bob',
             last_name='Johnson'
         )
-        
+
         charlie = User.objects.create_user(
             username='charlie',
             email='charlie@oxford.edu',
@@ -57,17 +72,45 @@ class Command(BaseCommand):
             first_name='Charlie',
             last_name='Brown'
         )
-        
-        # Create admin user
-        admin = User.objects.create_superuser(
-            username='admin',
-            email='admin@researchhub.com',
-            password='admin123',
-            first_name='Admin',
+
+        # IMPORTANT: researcher1 is used in all workshop exercises
+        researcher1 = User.objects.create_user(
+            username='researcher1',
+            email='researcher1@example.com',
+            password='testpass123',
+            first_name='Research',
             last_name='User'
         )
-        
-        self.stdout.write(self.style.SUCCESS('Created 4 users (including admin)'))
+
+        # Create users for exercises
+        user_2 = User.objects.create_user(
+            username='user_2',
+            email='user2@example.com',
+            password='testpass123'
+        )
+
+        user_3 = User.objects.create_user(
+            username='user_3',
+            email='user3@example.com',
+            password='testpass123'
+        )
+
+        # Create admin user
+        admin, created = User.objects.get_or_create(
+            username='admin',
+            defaults={
+                'email': 'admin@researchhub.com',
+                'first_name': 'Admin',
+                'last_name': 'User',
+                'is_staff': True,
+                'is_superuser': True
+            }
+        )
+        if created:
+            admin.set_password('admin123')
+            admin.save()
+
+        self.stdout.write(self.style.SUCCESS('Created 7 users (including admin)'))
         
         # Create research projects
         project1 = ResearchProject.objects.create(
@@ -90,7 +133,7 @@ class Command(BaseCommand):
             start_date=timezone.now().date() - timedelta(days=90),
             budget=1200000.00
         )
-        project2.collaborators.add(alice, charlie)
+        project2.collaborators.add(charlie)  # Only charlie, not alice (for security demo)
         
         project3 = ResearchProject.objects.create(
             title='Quantum Computing Applications',
@@ -103,8 +146,65 @@ class Command(BaseCommand):
         )
         
         self.stdout.write(self.style.SUCCESS('Created 3 research projects'))
-        
-        # Create datasets
+
+        # WORKSHOP DATA: Create Multi-Dataset Research Project
+        collaboration_project = ResearchProject.objects.create(
+            title='Multi-Dataset Research Collaboration',
+            description='Large-scale collaborative project analyzing multiple research datasets across institutions',
+            institution=test_university,
+            principal_investigator=researcher1,
+            status='active',
+            start_date=timezone.now().date() - timedelta(days=30),
+            budget=500000.00
+        )
+        collaboration_project.collaborators.add(user_2, user_3)
+
+        self.stdout.write(self.style.SUCCESS('Created multi-dataset collaboration project'))
+
+        # Create 10 datasets for collaboration project
+        for i in range(1, 11):
+            dataset = Dataset.objects.create(
+                project=collaboration_project,
+                name=f'Research Dataset {i:02d}',
+                description=f'Research dataset {i} from collaborative study',
+                file_type='csv',
+                file_size=1000000 * i,  # Variable sizes
+                file_path=f'/media/datasets/collaboration/data_{i:02d}.csv',
+                privacy_level='private' if i % 2 == 0 else 'public',
+                uploaded_by=researcher1,
+                row_count=10000 * i,
+                column_count=20,
+                is_processed=True,
+                metadata={'study_phase': 'data_collection', 'dataset_index': i}
+            )
+
+            # Add processing jobs for each dataset (causes N+1 with count)
+            for j in range(3):
+                DataProcessingJob.objects.create(
+                    dataset=dataset,
+                    job_type='quality_check' if j == 0 else 'analysis',
+                    status='completed',
+                    created_by=researcher1,
+                    completed_at=timezone.now() - timedelta(hours=j),
+                    parameters={'step': j}
+                )
+
+            # Add approved access requests (causes N+1 with filter)
+            for k in range(2):
+                requester = user_2 if k == 0 else user_3
+                DataAccessRequest.objects.create(
+                    dataset=dataset,
+                    requester=requester,
+                    requester_institution=test_university,
+                    status='approved',
+                    reason='Research collaboration',
+                    approved_by=researcher1,
+                    approval_date=timezone.now() - timedelta(days=k+1)
+                )
+
+        self.stdout.write(self.style.SUCCESS('Created 10 datasets with related data for collaboration project'))
+
+        # Create additional datasets for other exercises
         dataset1 = Dataset.objects.create(
             project=project1,
             name='Ocean Temperature Measurements 2023',
@@ -119,47 +219,67 @@ class Command(BaseCommand):
             is_processed=True,
             metadata={'source': 'NOAA', 'sensors': 50, 'frequency': 'hourly'}
         )
-        
-        dataset2 = Dataset.objects.create(
-            project=project1,
-            name='Marine Species Distribution',
-            description='Species observation data from research vessels',
+
+        # Private dataset for security demo
+        private_dataset = Dataset.objects.create(
+            project=project2,
+            name='Confidential Drug Trial Results',
+            description='PRIVATE: Clinical trial data - restricted access',
             file_type='excel',
             file_size=8388608,  # 8MB
-            file_path='/media/datasets/species_dist.xlsx',
-            privacy_level='restricted',
-            uploaded_by=alice,
-            row_count=12000,
-            column_count=15,
-            is_processed=True,
-            metadata={'species_count': 234, 'locations': 45}
-        )
-        
-        dataset3 = Dataset.objects.create(
-            project=project2,
-            name='Drug Compound Analysis Results',
-            description='ML predictions for drug compound effectiveness',
-            file_type='json',
-            file_size=104857600,  # 100MB
-            file_path='/media/datasets/drug_compounds.json',
+            file_path='/media/datasets/private/drug_trial.xlsx',
             privacy_level='private',
             uploaded_by=bob,
-            row_count=75000,
-            column_count=50,
-            is_processed=False,
-            processing_status='pending',
-            metadata={'compounds': 75000, 'features': 50, 'ml_model': 'XGBoost'}
+            row_count=5000,
+            column_count=30,
+            is_processed=True,
+            metadata={'confidential': True, 'trial_phase': 3}
         )
-        
-        self.stdout.write(self.style.SUCCESS('Created 3 datasets'))
-        
+
+        # Create the file for demo purposes (so download actually works)
+        import os
+        os.makedirs('/media/datasets/private', exist_ok=True)
+        with open('/media/datasets/private/drug_trial.xlsx', 'wb') as f:
+            f.write(b'Mock Excel file with confidential drug trial data')
+
+        # Analytics dataset
+        analytics_dataset = Dataset.objects.create(
+            project=project1,
+            name='Research Analytics Dataset',
+            description='Dataset for research analytics and reporting dashboard',
+            file_type='csv',
+            file_size=5242880,  # 5MB
+            file_path='/media/datasets/analytics_data.csv',
+            privacy_level='public',
+            uploaded_by=alice,
+            row_count=15000,
+            column_count=10,
+            is_processed=True,
+            metadata={'analytics_type': 'dashboard_metrics'}
+        )
+
+        self.stdout.write(self.style.SUCCESS('Created additional datasets for other demos'))
+
+        # Create some initial audit logs for analytics dataset (to show existing downloads)
+        for i in range(15):  # Create 15 initial downloads to match dashboard scenario
+            AuditLog.objects.create(
+                user=alice if i % 3 == 0 else (bob if i % 3 == 1 else charlie),
+                action='download',
+                object_type='Dataset',
+                object_id=str(analytics_dataset.id),
+                ip_address=f'192.168.1.{10 + i}',
+                timestamp=timezone.now() - timedelta(hours=12 - i)  # Spread over last 12 hours
+            )
+
+        self.stdout.write(self.style.SUCCESS('Created 15 initial downloads for analytics dataset'))
+
         # Create data access requests
         DataAccessRequest.objects.create(
-            dataset=dataset2,
-            requester=bob,
-            requester_institution=stanford,
+            dataset=private_dataset,
+            requester=alice,
+            requester_institution=mit,
             status='pending',
-            reason='Need marine species data for comparative analysis with Pacific Ocean data',
+            reason='Need clinical trial data for comparative analysis',
             notes='Collaborative research opportunity'
         )
         
@@ -174,10 +294,30 @@ class Command(BaseCommand):
             expiry_date=timezone.now() + timedelta(days=365)
         )
         
-        self.stdout.write(self.style.SUCCESS('Created 2 data access requests'))
-        
+        self.stdout.write(self.style.SUCCESS('Created sample data access requests'))
+
+        # Summary of created data
         self.stdout.write(self.style.SUCCESS(
-            '\nTest data setup complete!\n'
-            'Admin credentials: admin / admin123\n'
-            'Test users: alice, bob, charlie (password: testpass123)'
+            '\n' + '='*60 +
+            '\nWORKSHOP TEST DATA SETUP COMPLETE!\n' +
+            '='*60 +
+            '\n\nCredentials:' +
+            '\n  Admin: admin / admin123' +
+            '\n  Workshop user: researcher1 / testpass123' +
+            '\n  Test users: alice, bob, charlie (password: testpass123)' +
+            '\n\nKey Data Available:' +
+            '\n  Multi-Dataset Project: "Multi-Dataset Research Collaboration" with 10 datasets' +
+            '\n    - Owner: researcher1' +
+            '\n    - Each dataset has processing jobs and access requests' +
+            '\n  Private Dataset: "Confidential Drug Trial Results" (restricted)' +
+            '\n    - Owner: bob' +
+            '\n  Analytics Dataset: "Research Analytics Dataset"' +
+            '\n    - Owner: alice' +
+            '\n\nTotal Created:' +
+            f'\n  Users: {User.objects.count()}' +
+            f'\n  Projects: {ResearchProject.objects.count()}' +
+            f'\n  Datasets: {Dataset.objects.count()}' +
+            f'\n  Processing Jobs: {DataProcessingJob.objects.count()}' +
+            f'\n  Access Requests: {DataAccessRequest.objects.count()}\n' +
+            '='*60
         ))
