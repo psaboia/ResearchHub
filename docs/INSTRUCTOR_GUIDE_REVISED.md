@@ -135,7 +135,7 @@ docker compose exec web python workshop_scripts/verify_setup.py
 **[Open N1_QUERY_DEMONSTRATION.md](./N1_QUERY_DEMONSTRATION.md)**
 - **Time:** 15-20 minutes
 - **Complexity:** Medium
-- **Location:** `views.py` lines 31-48
+- **Location:** `views.py` lines 30-46
 - **Issue:** Dashboard makes 32 queries for 10 datasets, causing timeouts
 - **Key Learning:** Django ORM optimization with select_related/prefetch_related
 - **Best for:** Groups wanting to understand performance debugging
@@ -144,7 +144,7 @@ docker compose exec web python workshop_scripts/verify_setup.py
 **[Open CACHE_BUG_DEMONSTRATION.md](./CACHE_BUG_DEMONSTRATION.md)**
 - **Time:** 10-15 minutes
 - **Complexity:** Lower
-- **Location:** `views.py` lines 137-162
+- **Location:** `views.py` lines 126-149
 - **Issue:** Statistics show outdated data to users
 - **Impact:** Researchers see wrong download counts for their papers
 - **Key Learning:** Cache invalidation strategies
@@ -154,7 +154,7 @@ docker compose exec web python workshop_scripts/verify_setup.py
 **[Open SECURITY_BUG_DEMONSTRATION.md](./SECURITY_BUG_DEMONSTRATION.md)**
 - **Time:** 10-15 minutes
 - **Complexity:** Medium
-- **Location:** `views.py` lines 53-70
+- **Location:** `views.py` lines 51-65
 - **Issue:** Private research data accessible to unauthorized users
 - **Impact:** HIPAA/GDPR violation risk, confidential data exposure
 - **Key Learning:** Authentication vs Authorization
@@ -177,7 +177,7 @@ docker compose exec web python workshop_scripts/verify_setup.py
   - Security: Unauthorized access blocked
 
 > **📝 Additional Security Bug Note:**
-> If time permits and participants are interested, mention the SQL injection vulnerability in `search_datasets` (lines 166-180):
+> If time permits and participants are interested, mention the SQL injection vulnerability in `search_datasets` (lines 153-165):
 > - **Problem:** `f"... WHERE name LIKE '%{search_term}%'"` - Direct string interpolation
 > - **Fix:** Use Django ORM `.filter(name__icontains=search_term)` instead
 > - **Context:** Same setup principles apply

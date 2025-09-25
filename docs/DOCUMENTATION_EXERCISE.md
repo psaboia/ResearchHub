@@ -5,14 +5,14 @@ This exercise teaches participants how to use AI to generate comprehensive docum
 
 ## Target Functions
 
-### Function 1: `calculate_data_quality_metrics` (lines 184-261)
+### Function 1: `calculate_data_quality_metrics` (lines 168-245)
 - **Purpose**: Assesses data quality across multiple dimensions
 - **Complexity**: 78 lines, multiple quality metrics, configurable rules
 - **Challenge**: Understanding statistical concepts and business context
 
-### Function 2: `process_research_workflow` (lines 265-375)
+### Function 2: `process_research_workflow` (lines 248-357)
 - **Purpose**: Orchestrates multi-step data processing workflows
-- **Complexity**: 111 lines, multiple workflow types, error handling
+- **Complexity**: 110 lines, multiple workflow types, error handling
 - **Challenge**: Understanding workflow patterns and data pipeline concepts
 
 ## Part 1: Initial Documentation Attempt (3 minutes)
@@ -20,7 +20,7 @@ This exercise teaches participants how to use AI to generate comprehensive docum
 ### Step 1: Basic Prompt
 ```bash
 # Open the file in Cursor or your AI tool
-# Navigate to line 184 (calculate_data_quality_metrics)
+# Navigate to line 168 (calculate_data_quality_metrics)
 ```
 
 **Try this poor prompt first:**

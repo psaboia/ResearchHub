@@ -29,9 +29,9 @@ from .models import (
 @api_view(['GET'])
 def get_project_dashboard(request, project_id):
     project = ResearchProject.objects.get(id=project_id)
-    
+
     datasets = project.datasets.all()
-    
+
     dataset_info = []
     for dataset in datasets:
         info = {
@@ -42,7 +42,7 @@ def get_project_dashboard(request, project_id):
             'access_requests': dataset.access_requests.filter(status='approved').count(),
         }
         dataset_info.append(info)
-    
+
     return Response({'project': project.title, 'datasets': dataset_info})
 
 
@@ -69,14 +69,14 @@ def download_dataset(request, dataset_id):
 def process_uploaded_file(request):
     file = request.FILES['file']
     project_id = request.data.get('project_id')
-    
+
     filename = f"{project_id}_{file.name}"
     save_path = f"/media/uploads/{filename}"
-    
+
     with open(save_path, 'wb') as f:
         for chunk in file.chunks():
             f.write(chunk)
-    
+
     dataset = Dataset.objects.create(
         project_id=project_id,
         name=file.name,
@@ -85,28 +85,28 @@ def process_uploaded_file(request):
         uploaded_by=request.user,
         file_type='csv',
     )
-    
+
     # Start processing job
     process_dataset_task.delay(str(dataset.id))
-    
+
     return Response({'dataset_id': str(dataset.id)})
 
 
 @shared_task
 def process_dataset_task(dataset_id):
     dataset = Dataset.objects.get(id=dataset_id)
-    
+
     if dataset.file_type == 'csv':
         df = pd.read_csv(dataset.file_path)
-        
+
         dataset.row_count = len(df)
         dataset.column_count = len(df.columns)
         dataset.is_processed = True
         dataset.save()
-        
+
         # Perform analysis
         summary = df.describe().to_dict()
-        
+
         return {'status': 'success', 'summary': summary}
 
 
@@ -115,9 +115,9 @@ def sync_external_research_data(request, external_id):
         f"https://api.research-database.org/datasets/{external_id}",
         headers={'Authorization': f"Bearer {settings.EXTERNAL_API_KEY}"}
     )
-    
+
     data = response.json()
-    
+
     # Process and store data
     return JsonResponse({'status': 'synced', 'data': data})
 
@@ -125,17 +125,17 @@ def sync_external_research_data(request, external_id):
 @api_view(['GET'])
 def get_dataset_statistics(request, dataset_id):
     cache_key = f"dataset_stats_{dataset_id}"
-    
+
     stats = cache.get(cache_key)
     if stats:
         return Response(stats)
-    
+
     dataset = Dataset.objects.get(id=dataset_id)
-    
+
     # Calculate expensive statistics
     stats = {
         'total_downloads': AuditLog.objects.filter(
-            object_id=str(dataset_id), 
+            object_id=str(dataset_id),
             action='download'
         ).count(),
         'unique_users': AuditLog.objects.filter(
@@ -143,29 +143,28 @@ def get_dataset_statistics(request, dataset_id):
         ).values('user').distinct().count(),
         'last_accessed': dataset.last_accessed,
     }
-    
+
     cache.set(cache_key, stats, timeout=3600)
-    
+
     return Response(stats)
 
 
 @api_view(['GET'])
 def search_datasets(request):
     search_term = request.GET.get('q', '')
-    
+
     query = f"""
-        SELECT * FROM research_dataset 
-        WHERE name LIKE '%{search_term}%' 
+        SELECT * FROM research_dataset
+        WHERE name LIKE '%{search_term}%'
         OR description LIKE '%{search_term}%'
     """
-    
+
     datasets = Dataset.objects.raw(query)
-    
+
     results = [{'id': str(d.id), 'name': d.name} for d in datasets]
     return Response(results)
 
 
-# Data quality assessment function
 def calculate_data_quality_metrics(dataset_id, validation_rules=None, threshold_config=None):
     dataset = Dataset.objects.get(id=dataset_id)
     
@@ -246,7 +245,6 @@ def calculate_data_quality_metrics(dataset_id, validation_rules=None, threshold_
     return metrics
 
 
-# Complex undocumented workflow orchestration
 def process_research_workflow(project_id, workflow_config):
     project = ResearchProject.objects.get(id=project_id)
     results = {'steps': [], 'errors': [], 'warnings': []}

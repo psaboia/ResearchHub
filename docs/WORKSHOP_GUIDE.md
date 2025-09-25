@@ -44,7 +44,7 @@ The platform has grown from 10 to 1000+ datasets and now has performance and sec
 
 **Your Task:**
 1. Open `research/views.py` in your AI IDE
-2. Find the `calculate_data_quality_metrics` function (around line 183)
+2. Find the `calculate_data_quality_metrics` function (around line 168)
 3. This function lacks documentation - use AI to generate comprehensive documentation
 
 **Progressive Prompting Exercise:**
@@ -92,7 +92,7 @@ docker compose exec web python workshop_scripts/n1_investigate_dashboard_perform
 ```
 
 **Step 2: Set Up Your Context for AI Assistance**
-1. **Open `research/views.py`** → Navigate to `get_project_dashboard` function (lines 29-46)
+1. **Open `research/views.py`** → Navigate to `get_project_dashboard` function (lines 30-46)
 2. **Open `research/models.py`** → So AI understands Dataset/ResearchProject relationships
 3. **Keep terminal visible** → AI needs to see the "32 queries" problem
 
@@ -144,7 +144,7 @@ docker compose exec web python workshop_scripts/cache_demonstrate_problem.py
 ```
 
 **Step 2: Set Up Your Context for AI Assistance**
-1. **Open `research/views.py`** → Find both `get_dataset_statistics` (lines 135-161) and `download_dataset` (lines 49-69)
+1. **Open `research/views.py`** → Find both `get_dataset_statistics` (lines 126-149) and `download_dataset` (lines 51-65)
 2. **Keep terminal visible** → AI needs to see the cache discrepancy (35 in DB, 15 in cache)
 
 **Step 3: Fix with AI**
@@ -193,7 +193,7 @@ docker compose exec web python workshop_scripts/security_demonstrate_breach.py
 ```
 
 **Step 2: Set Up Your Context for AI Assistance**
-1. **Open `research/views.py`** → Navigate to `download_dataset` function (lines 49-69)
+1. **Open `research/views.py`** → Navigate to `download_dataset` function (lines 51-65)
 2. **Open `research/models.py`** → AI needs to understand Dataset, DataAccessRequest, ResearchProject relationships
 3. **Keep terminal visible** → AI needs to see the unauthorized access confirmation
 
