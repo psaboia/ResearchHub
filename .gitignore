@@ -123,8 +123,5 @@ uv.lock
 # Temporary/unused files
 tmp/
 
-# Workshop scripts (should not be in main branch)
-workshop_scripts/
-
 # Claude Code settings
 .claude/settings.local.json
