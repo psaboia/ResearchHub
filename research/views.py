@@ -39,8 +39,7 @@ def get_project_dashboard(request, project_id):
         info = {
             'id': str(dataset.id),
             'name': dataset.name,
-            'uploaded_by': dataset.uploaded_by.username,
-            'institution': dataset.uploaded_by.profile.institution.name,  # N+1
+            'uploaded_by': dataset.uploaded_by.username,  # N+1
             'processing_jobs': dataset.processing_jobs.count(),  # N+1
             'access_requests': dataset.access_requests.filter(status='approved').count(),  # N+1
         }
@@ -49,15 +48,15 @@ def get_project_dashboard(request, project_id):
     return Response({'project': project.title, 'datasets': dataset_info})
 
 
-# BUG 2: Missing permission check - Security vulnerability  
+# BUG 2: Missing permission check - Security vulnerability
 @api_view(['POST'])
 @login_required
 def download_dataset(request, dataset_id):
     dataset = Dataset.objects.get(id=dataset_id)
     # BUG: No check if user has permission to download this dataset
-    
+
     file_path = dataset.file_path
-    
+
     # Log the download
     AuditLog.objects.create(
         user=request.user,
@@ -66,7 +65,7 @@ def download_dataset(request, dataset_id):
         object_id=str(dataset.id),
         ip_address=request.META.get('REMOTE_ADDR'),
     )
-    
+
     return FileResponse(open(file_path, 'rb'), as_attachment=True)
 
 
