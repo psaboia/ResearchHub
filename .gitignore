@@ -122,3 +122,6 @@ uv.lock
 
 # Temporary/unused workshop files
 tmp/
+
+# Claude Code settings
+.claude/settings.local.json
