@@ -10,10 +10,14 @@
 
 This workshop teaches participants how to write effective tests when using LLM coding assistants, following the presentation "Effective Testing in the World of LLM Coding Assistants". The key message: **Python + LLMs = Double Uncertainty**, making tests essential for verification.
 
+### Workshop Approach: Fix the Bad Tests!
+Participants work through `exercises.py`, which contains intentionally bad tests. They experience the problems firsthand, then fix them using the principles from the slides. This "learn by fixing" approach is more engaging than writing from scratch.
+
 ### Key Files
 - **Presentation:** `slides.pdf` (18 slides)
 - **Code Examples:** `week8_workshop/slide_examples.py`
-- **Test Examples:** `week8_workshop/test_examples.py`
+- **Exercises:** `week8_workshop/exercises.py` (participants fix these!)
+- **Solutions:** `week8_workshop/test_solutions.py` (reveal after each exercise)
 
 ---
 
@@ -87,7 +91,10 @@ def test_normalizes_email():
     assert user.email == "alice@uni.edu"  # Testing YOUR logic!
 ```
 
-**Hands-on:** Participants write tests for email validation logic
+**Hands-on:** Participants fix Exercise 2 in `exercises.py`
+- They have a bad test that just tests the framework
+- Guide them to test YOUR validation logic instead
+- Show `test_solutions.py` solution after
 
 ---
 

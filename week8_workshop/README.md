@@ -19,7 +19,8 @@ This workshop teaches participants how to write effective tests when using AI co
 ### For Participants:
 - **`PARTICIPANT_HANDOUT.md`** - Quick reference and exercises
 - **`slide_examples.py`** - Code examples (with intentional bugs!)
-- **`test_examples.py`** - Test demonstrations (good vs bad approaches)
+- **`exercises.py`** - Tests to fix during workshop (hands-on practice!)
+- **`test_solutions.py`** - Reference solutions (instructor reveals after)
 
 ### Workshop Structure:
 1. **Opening Hook** (5 min) - Division by zero bug
@@ -39,8 +40,11 @@ pip install pytest pytest-mock
 python -c "from slide_examples import add; print(add(2,3))"
 # Should print: 4 (that's the bug!)
 
-# Run example tests
-pytest test_examples.py -v
+# Run participant exercises (many will fail - that's the point!)
+pytest exercises.py -v
+
+# See the solutions
+pytest test_solutions.py -v
 ```
 
 ### For Instructors:
@@ -51,8 +55,8 @@ pytest test_examples.py -v
 
 ### For Participants:
 1. Follow along with `PARTICIPANT_HANDOUT.md`
-2. Write tests in `test_examples.py`
-3. Try the exercises in `slide_examples.py`
+2. **Fix the bad tests** in `exercises.py` (main activity!)
+3. Compare with `test_solutions.py` after each exercise
 
 ## 🎓 The 6 Principles
 
